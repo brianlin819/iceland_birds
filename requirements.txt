@@ -1,0 +1,7 @@
+#I'm probably missing a lot of stuff but I'll fill them in later.
+pip
+matplotlib
+numpy
+PyYAML
+tqdm
+ultralytics
