@@ -1,0 +1,15 @@
+# Environment
+seed: 42
+device: "xpu"
+num_workers: 4
+ 
+# dataset parameters
+data_root: "datasets"
+num_classes: 4
+ 
+# Training
+image_size: [512,512]
+batch_size: 32
+learning_rate: 0.01 #0.001  
+weight_decay: 0.0001
+num_epochs: 100
