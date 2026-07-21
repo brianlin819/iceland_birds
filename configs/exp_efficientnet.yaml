@@ -8,8 +8,8 @@ data_root: "datasets"
 num_classes: 4
  
 # Training
-image_size: [512,512]
-batch_size: 32
+image_size: [528,528]
+batch_size: 24
 learning_rate: 0.01 #0.001  
 weight_decay: 0.0001
 num_epochs: 100

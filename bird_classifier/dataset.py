@@ -8,7 +8,7 @@ import torch
 import matplotlib.pyplot as plt
 
  
-classes = ["ad_male", "ad_female", "juv_male", "juv_female"]
+classes = ["ad_M", "ad_F", "juv_M", "juv_F"]
 # classes = ["male","female"]
 class_index = {}
 for i, name in enumerate(classes):
@@ -42,29 +42,24 @@ class BirdDataset(Dataset):
         annoPath = os.path.join(
             self.data_root,
             'annotations',
-            'training_annotations.json' if self.split == 'train' else 'test_annotations.json'
+            'training.json' if self.split == 'train' else 'test.json'
         )
         meta = json.load(open(annoPath, 'r'))  
         labels = {}
         for entry in meta:
-            age = entry.get("Age: ")
-            sex = entry.get("Sex: ")
-            if( sex == 'karlfugl'):
-                sex = "male"
-            else:
-                sex = 'female'
-            if(age not in ("ad", "juv") or sex not in ("male", "female")):
+            age = entry.get("age")
+            sex = entry.get("sex")
+            if(age not in ("ad", "juv") or sex not in ("M", "F")):
                 continue
             #Adding the filenames for the photos with annotations that include both the sex and the age.
             label = f"{age}_{sex}"
-            stem = os.path.splitext(entry["SourceFile"])[0]
+            stem = os.path.splitext(entry["filename"])[0]
             labels[stem] = label
 
         self.data = []
-        image_dir = os.path.join(self.data_root, 'PAD_PHOTOS')
+        image_dir = os.path.join(self.data_root, 'pads')
         for file in os.listdir(image_dir):
             stem = os.path.splitext(file)[0]
-            stem = re.sub(r'_noexif_cropped-0', '', stem)
             # The two stems are to check for if the image has both the age and sex labels
             # It gets the filename of the photo in the same format as the annotations and then checks
             # with the list of annotations to see if the file is in there as well.
@@ -79,7 +74,7 @@ class BirdDataset(Dataset):
 
         image_name, label = self.data[index]
  
-        image_path = os.path.join(self.data_root, 'PAD_PHOTOS', image_name)
+        image_path = os.path.join(self.data_root, 'pads', image_name)
         img = Image.open(image_path).convert('RGB')
  
         img_tensor = self.transform(img)

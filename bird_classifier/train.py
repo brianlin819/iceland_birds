@@ -13,9 +13,9 @@ from torch.optim import Adam, SGD
 from util import init_seed
 from dataset import BirdDataset
 from model import EfficientNetModel
+import pandas as pd
 
-
-
+torch.xpu.set_per_process_memory_fraction(1.0)
 #Builds a BirdDataset based on the split (training and validation) and wraps it
 # in a pytorch dataloader.
 def create_dataloader(cfg, split='train'):
@@ -52,6 +52,7 @@ def load_model(cfg):
 
     return model_instance, start_epoch
 
+    
 
 #Saves the model weights into model_states
 def save_model(cfg, epoch, model, stats):
@@ -65,6 +66,7 @@ def save_model(cfg, epoch, model, stats):
     if not os.path.exists(cfpath):
         with open(cfpath, 'w') as f:
             yaml.dump(cfg, f)
+
 
             
 #Sets up the optimizer which adjusts the parameters to help the model learn
@@ -159,10 +161,6 @@ def validate(cfg, dataLoader, model):
 
     return loss_total, oa_total
 
-train_loss = []
-val_loss = []
-val_acc = []
-
 def main():
 
     parser = argparse.ArgumentParser(description='Train deep learning model.')
@@ -201,27 +199,7 @@ def main():
             'oa_val': oa_val
         }
         save_model(cfg, current_epoch, model, stats)
-        train_loss.append(loss_train)
-        val_loss.append(loss_val)
-        val_acc.append(oa_val)
 
-    plt.plot(train_loss, label = 'Train Loss', marker='o')
-    plt.plot(val_loss, label = 'Validation Loss', marker = 'o')
-    plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-    plt.title("Training vs Validation Loss")
-    plt.legend()
-    plt.grid(True)
-    plt.show()
-
-    #Overall Accuracy Plot
-    plt.plot(val_acc, label = "Validation Accuracy", marker = 'o', color = 'green')
-    plt.xlabel("Epoch")
-    plt.ylabel("Accuracy(%)")
-    plt.title("Validation Accuracy over Epochs")
-    plt.legend()
-    plt.grid(True)
-    plt.show()  
 
 if __name__ == '__main__':
 

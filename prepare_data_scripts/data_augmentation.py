@@ -5,13 +5,13 @@ import random
 import numpy as np
 
 #Gets images from cropped photos folder
-crop_paths = glob.glob("CROPPED_PHOTOS/*.jpg")
+crop_paths = glob.glob("datasets/crops/*.jpg")
 imgs = [cv2.imread(path) for path in crop_paths]
 
 # Setting the desired pixel size of the photos and the
 # directory to where the new photos will go
 desired_size = 512
-pad_directory = Path("datasets/PAD_PHOTOS")
+pad_directory = Path("datasets/pads")
 pad_directory.mkdir(exist_ok=True)
 
 for i, img in enumerate(imgs):
