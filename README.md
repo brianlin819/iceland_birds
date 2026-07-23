@@ -36,3 +36,16 @@ Graphs for the test set will only be plotted once training has finished and gone
 
 
 If training the model will take too long, a couple plots of the most recent run can be found in the graphs folder. (The results aren't very good yet)
+
+## (OPTIONAL) Adding Data
+If you would like to train on your own dataset rather than the ones provided, delete the folders inside "datasets" and add your own folder with your data and annotations. Then change the image path in "detect_and_segment.py" to the path of your folder. Finally run "detect_and_segment.py" and then "pad_images.py".
+
+```bash
+python prepare_data_scripts/detet_and_segment.py
+```
+
+```bash
+python prepare_data_scripts/pad_images.py
+```
+
+**Note:** My annotations for my project have already been split for training/validation/testing. If yours aren't, you may have to adjust dataset.py and train.py to account for that.

@@ -34,7 +34,7 @@ results = model.predict(imgs)
 
 
 # Makes path for the cropped iamges to go to
-cropped_directory = Path("CROPPED_PHOTOS")
+cropped_directory = Path("datasets/crops")
 cropped_directory.mkdir(exist_ok=True)
 # Goes through each of the results from the YOLO model and gets the coordinates
 # of the bounding boxes in order to crop the photos based on those bounding boxes
