@@ -8,6 +8,8 @@ import torch
 import matplotlib.pyplot as plt
 from PIL import Image
 
+#Just testing, nothing important here
+
 crop_paths = glob.glob("CROPPED_PHOTOS/*.jpg")
 imgs = [cv2.imread(path) for path in crop_paths]
 

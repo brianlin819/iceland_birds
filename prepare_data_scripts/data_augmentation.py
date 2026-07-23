@@ -5,13 +5,13 @@ import random
 import numpy as np
 
 #Gets images from cropped photos folder
-crop_paths = glob.glob("CROPPED_PHOTOS/*.jpg")
+crop_paths = glob.glob("datasets/crops/*.jpg")
 imgs = [cv2.imread(path) for path in crop_paths]
 
 # Setting the desired pixel size of the photos and the
 # directory to where the new photos will go
 desired_size = 512
-pad_directory = Path("datasets/PAD_PHOTOS")
+pad_directory = Path("datasets/pads")
 pad_directory.mkdir(exist_ok=True)
 
 for i, img in enumerate(imgs):
@@ -52,8 +52,8 @@ for i, img in enumerate(imgs):
     pad_name = Path(crop_paths[i]).stem + ".jpg"
     cv2.imwrite(str(pad_directory / pad_name), pad)
 
-    aug_directory = Path("AUG_PHOTOS")
-    aug_directory.mkdir(exist_ok=True)
+    # aug_directory = Path("AUG_PHOTOS")
+    # aug_directory.mkdir(exist_ok=True)
     #Data augmentation
     #Augmentation from here: https://www.kaggle.com/code/ahmedabdelfattah20/image-augmentation-using-opencv
     #Randomly flips the image horizontally and vertically

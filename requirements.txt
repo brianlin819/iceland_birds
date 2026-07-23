@@ -2,6 +2,11 @@
 pip
 matplotlib
 numpy
-PyYAML
+pyyaml
 tqdm
 ultralytics
+opencv-python
+Pillow
+tqdm
+scikit-learn
+pandas

@@ -9,5 +9,3 @@ def init_seed(seed):
         random.seed(seed)
         torch.manual_seed(seed)
         torch.xpu.manual_seed(seed)
-        cudnn.benchmark = True
-        cudnn.deterministic = True
