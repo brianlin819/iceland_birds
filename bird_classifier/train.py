@@ -1,4 +1,4 @@
-
+# https://github.com/CV4EcologySchool/ct_classifier/blob/master/ct_classifier/train.py
 import os
 import argparse
 import yaml
@@ -9,13 +9,14 @@ import numpy as np
 import torch #
 import torch.nn as nn 
 from torch.utils.data import DataLoader 
-from torch.optim import Adam, SGD 
+from torch.optim import AdamW, SGD 
 from util import init_seed
 from dataset import BirdDataset
 from model import EfficientNetModel
-import pandas as pd
+import matplotlib.pyplot as plt
 
-torch.xpu.set_per_process_memory_fraction(1.0)
+torch.xpu.empty_cache()
+torch.xpu.set_per_process_memory_fraction(0.7)
 #Builds a BirdDataset based on the split (training and validation) and wraps it
 # in a pytorch dataloader.
 def create_dataloader(cfg, split='train'):
@@ -26,8 +27,9 @@ def create_dataloader(cfg, split='train'):
             dataset=dataset_instance,
             batch_size=cfg['batch_size'],
             shuffle=True,
-            num_workers=cfg['num_workers']
+            num_workers=cfg['num_workers'],
             #from exp_efficientnet.yaml
+            drop_last=(split == 'train')
         )
     return dataLoader
 
@@ -72,7 +74,7 @@ def save_model(cfg, epoch, model, stats):
 #Sets up the optimizer which adjusts the parameters to help the model learn
 def setup_optimizer(cfg, model):
     #deciding between Adam and SGD
-    optimizer = SGD(model.parameters(),
+    optimizer = AdamW(model.parameters(),
                     lr=cfg['learning_rate'],
                     weight_decay=cfg['weight_decay'])
     return optimizer
@@ -96,16 +98,19 @@ def train(cfg, dataLoader, model, optimizer):
         data, labels = data.to(device), labels.to(device)
         prediction = model(data)
 
+        #Applies the optimizer step which updates the model's weights
         optimizer.zero_grad()
         loss = criterion(prediction, labels)
         loss.backward()
         optimizer.step()
 
+        #Calculates the loss and overall accuracy to show and store
         loss_total += loss.item()
         pred_label = torch.argmax(prediction, dim=1)
         oa = torch.mean((pred_label == labels).float()) 
         oa_total += oa.item()
 
+        #Bar to show progress
         progressBar.set_description(
             '[Train] Loss: {:.2f}; OA: {:.2f}%'.format(
                 loss_total/(idx+1),
@@ -116,11 +121,12 @@ def train(cfg, dataLoader, model, optimizer):
     progressBar.close()
     loss_total /= len(dataLoader) 
     oa_total /= len(dataLoader)
-
+    torch.xpu.empty_cache()
     return loss_total, oa_total
+    
 
 
-
+#Pretty much the same as the train function except this one sets the model to model.eval() other than model.train() and doesn't adjust weights
 def validate(cfg, dataLoader, model):
   
     device = cfg['device']
@@ -133,7 +139,6 @@ def validate(cfg, dataLoader, model):
     loss_total, oa_total = 0.0, 0.0   
 
     progressBar = trange(len(dataLoader))
-    
     with torch.no_grad():
         for idx, (data, labels) in enumerate(dataLoader):
 
@@ -156,13 +161,66 @@ def validate(cfg, dataLoader, model):
             progressBar.update(1)
     
     progressBar.close()
+    torch.xpu.empty_cache()
     loss_total /= len(dataLoader)
     oa_total /= len(dataLoader)
 
     return loss_total, oa_total
 
-def main():
+#Pretty much the same as val and this one also doesn't adjust the weights of the model
+# and it's only run after training is finished.
+def test(cfg, dataLoader, model):
 
+    device = cfg['device']
+    model.to(device)
+
+    model.eval()
+
+    criterion = nn.CrossEntropyLoss() 
+
+    loss_total, oa_total = 0.0, 0.0   
+
+    progressBar = trange(len(dataLoader))
+
+    for idx, (data, labels) in enumerate(dataLoader): 
+        #loads onto device
+        data, labels = data.to(device), labels.to(device)
+        prediction = model(data)
+
+        loss = criterion(prediction, labels)
+        loss.backward()
+
+        loss_total += loss.item()
+        pred_label = torch.argmax(prediction, dim=1)
+        oa = torch.mean((pred_label == labels).float()) 
+        oa_total += oa.item()
+
+        progressBar.set_description(
+            '[Test] Loss: {:.2f}; OA: {:.2f}%'.format(
+                loss_total/(idx+1),
+                100*oa_total/(idx+1)
+            )
+        )
+        progressBar.update(1)
+    progressBar.close()
+    loss_total /= len(dataLoader) 
+    oa_total /= len(dataLoader)
+
+    return loss_total, oa_total
+
+#Gets the accuracy information of the last saved model_state to graph later
+def getOA():
+    path = sorted(glob.glob(os.path.join("model_states", "*.pt")))[-1]
+    print(path)
+    oa_train = torch.load(path)['oa_train']
+    oa_val = torch.load(path)['oa_val']
+    return oa_train, oa_val
+
+def main():
+    #I was crashing a lot so added this
+    torch.xpu.set_per_process_memory_fraction(0.7)
+
+    # Loads the configurations like the seed and device
     parser = argparse.ArgumentParser(description='Train deep learning model.')
     parser.add_argument('--config', help='Path to config file', default='configs/exp_efficientnet.yaml')
     args = parser.parse_args()
@@ -174,21 +232,26 @@ def main():
 
     device = cfg['device']
     if device != 'cpu' and not torch.xpu.is_available():
-        print(f'WARNING: device set to "{device}" but CUDA not available; falling back to CPU...')
+        print(f'WARNING: device set to "{device}" but XPU not available; falling back to CPU...')
         cfg['device'] = 'cpu'
 
+    # makes the dataloaders
     dl_train = create_dataloader(cfg, split='train')
     dl_val = create_dataloader(cfg, split='val')
+    dl_test = create_dataloader(cfg, split='test')
 
+    #Loads model and optimizer
     model, current_epoch = load_model(cfg)
-
     optim = setup_optimizer(cfg, model)
 
+    #This does the training and validation for each epoch
+    #Get epochs from confgis
     numEpochs = cfg['num_epochs']
     while current_epoch < numEpochs:
         current_epoch += 1
         print(f'Epoch {current_epoch}/{numEpochs}')
 
+        #Training and validation
         loss_train, oa_train = train(cfg, dl_train, model, optim)
         loss_val, oa_val = validate(cfg, dl_val, model)
 
@@ -199,6 +262,26 @@ def main():
             'oa_val': oa_val
         }
         save_model(cfg, current_epoch, model, stats)
+        torch.xpu.empty_cache()
+
+    #Graphing the loss and accuracy for training, validation, and testing.
+    oa_train, oa_val = getOA()
+    loss_test, oa_test = test(cfg, dl_test, model)
+    print("TEST LOSS: ", loss_test)
+    print("TEST ACCURACY: ", oa_test)
+    bars = plt.bar(["Training Accuracy", "Validation Accuracy", "Test Accuracy"],[oa_train*100, oa_val*100, oa_test*100])
+    plt.title("Training, Validation, and Test Accuracy")
+    plt.ylabel("Accuracy (%)")
+    plt.ylim(top = 100)
+
+    #https://stackoverflow.com/questions/53066633/how-to-show-values-on-top-of-bar-plot
+    for bar in bars:
+        yval = bar.get_height()
+        plt.text(bar.get_x()+bar.get_width()/2, yval + 3, f"{round(yval, 2)}%", ha = "center")
+
+
+    plt.show()
+
 
 
 if __name__ == '__main__':

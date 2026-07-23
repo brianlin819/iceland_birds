@@ -52,8 +52,8 @@ for i, img in enumerate(imgs):
     pad_name = Path(crop_paths[i]).stem + ".jpg"
     cv2.imwrite(str(pad_directory / pad_name), pad)
 
-    aug_directory = Path("AUG_PHOTOS")
-    aug_directory.mkdir(exist_ok=True)
+    # aug_directory = Path("AUG_PHOTOS")
+    # aug_directory.mkdir(exist_ok=True)
     #Data augmentation
     #Augmentation from here: https://www.kaggle.com/code/ahmedabdelfattah20/image-augmentation-using-opencv
     #Randomly flips the image horizontally and vertically

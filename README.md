@@ -15,3 +15,22 @@ conda install pip
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/xpu
 pip install -r requirements.txt
 ```
+## Running
+1.     
+**IMPORTANT:** If you are not running this on intel XPU, you will have to go into the code and manually change xpu into the device you are using (cuda, cpu, etc.) in *configs*, *util.py*, and *train.py* 
+
+2. 
+Run train.py by running:
+```bash
+python bird_classifier/train.py --config configs/exp_efficientnet.yaml
+```
+If you want to graph the training and validation loss/accuracies, run plot_results.py:
+
+```bash
+python bird_classifier/plot_results.py
+```
+
+Graphs for the test set will only be plotted once training has finished and gone through all the epochs set in configs.
+
+
+If training the model will take too long, a couple plots of the most recent run can be found in the graphs folder. (The results aren't very good yet)
