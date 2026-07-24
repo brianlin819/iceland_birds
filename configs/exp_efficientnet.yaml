@@ -10,6 +10,7 @@ num_classes: 4
 # Training
 image_size: [260,260]
 batch_size: 16
-learning_rate: 0.0001 #0.001  
+learning_rate: 0.001 #0.001  
+learning_rate_unfreeze: 0.0001
 weight_decay: 0.0001
-num_epochs: 50
+num_epochs: 34

@@ -10,3 +10,4 @@ Pillow
 tqdm
 scikit-learn
 pandas
+bitsandbytes

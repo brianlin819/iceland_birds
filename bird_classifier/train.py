@@ -14,6 +14,9 @@ from util import init_seed
 from dataset import BirdDataset
 from model import EfficientNetModel
 import matplotlib.pyplot as plt
+from torch.optim.lr_scheduler import CosineAnnealingLR
+import bitsandbytes as bnb
+from pathlib import Path
 
 torch.xpu.empty_cache()
 torch.xpu.set_per_process_memory_fraction(0.7)
@@ -72,12 +75,34 @@ def save_model(cfg, epoch, model, stats):
 
             
 #Sets up the optimizer which adjusts the parameters to help the model learn
-def setup_optimizer(cfg, model):
+def setup_optimizer(cfg, model, freeze):
+
+
+    #Changes to a lower learning rate once the backbone is unfrozen
+    if (freeze == True):
+        lr = cfg['learning_rate']
+    else:
+        lr = cfg['learning_rate_unfreeze']
+
     #deciding between Adam and SGD
-    optimizer = AdamW(model.parameters(),
-                    lr=cfg['learning_rate'],
-                    weight_decay=cfg['weight_decay'])
+    # I am using AdamW8bit because I don't have enough available GPU memory to run the normal AdamW 
+    # If you have enough memory, feel free to use AdamW
+    optimizer = bnb.optim.AdamW8bit(model.parameters(),
+                    lr=lr ,
+                    weight_decay=cfg['weight_decay']
+                    # momentum=0.9, 
+                    # nesterov=True
+                    )
+    print(lr)
     return optimizer
+
+#Sets up cosine annealing which will adjust the learning rate. Helps prevent the loss and accuracy of the function from oscillating as much.
+def setup_cosineannealing(cfg, optimizer):
+    scheduler = CosineAnnealingLR(
+        optimizer,
+        T_max=cfg['num_epochs']
+        )
+    return scheduler
 
 
 
@@ -210,7 +235,15 @@ def test(cfg, dataLoader, model):
 
 #Gets the accuracy information of the last saved model_state to graph later
 def getOA():
-    path = sorted(glob.glob(os.path.join("model_states", "*.pt")))[-1]
+    epochs = []
+    paths = sorted(glob.glob(os.path.join("model_states", "*.pt")))
+    for i, path in enumerate(paths):
+        filename = os.path.basename(path)
+        epochs_num = int(filename.split('.')[0])
+        epochs.append(epochs_num)
+    sorted_data = sorted(epochs) #Puts the info into a list of tuples and then sorts them based on the first value (epochs).
+    path = Path(f"model_states/{sorted_data[-1]}.pt")
+    
     print(path)
     oa_train = torch.load(path)['oa_train']
     oa_val = torch.load(path)['oa_val']
@@ -242,18 +275,52 @@ def main():
 
     #Loads model and optimizer
     model, current_epoch = load_model(cfg)
-    optim = setup_optimizer(cfg, model)
+    #backbone frozen
+    optim = setup_optimizer(cfg, model, True)
+    scheduler = setup_cosineannealing(cfg, optim)
 
     #This does the training and validation for each epoch
     #Get epochs from confgis
     numEpochs = cfg['num_epochs']
-    while current_epoch < numEpochs:
+    # Trains the model with a higher learning rate and the backbone frozen for the first 10 epochs in order to 
+    # get the head of the model in a decent state.
+    while current_epoch <= 10:
         current_epoch += 1
         print(f'Epoch {current_epoch}/{numEpochs}')
 
         #Training and validation
         loss_train, oa_train = train(cfg, dl_train, model, optim)
         loss_val, oa_val = validate(cfg, dl_val, model)
+
+
+        stats = {
+            'loss_train': loss_train,
+            'loss_val': loss_val,
+            'oa_train': oa_train,
+            'oa_val': oa_val
+        }
+        save_model(cfg, current_epoch, model, stats)
+        torch.xpu.empty_cache()
+
+    # reloads the optimizer wih the lower learning rate
+    optim = setup_optimizer(cfg, model, False)
+    #unfreezes the layers of the model 
+    for param in model.feature_extractor.parameters():
+        param.requires_grad = True
+    print("Unfreezing and starting second phase")
+
+    # Unfreezes the backbone of the model and starts training with a lower learning rate in order to let the rest
+    # of the model train without ruining the weights from earlier.
+    while current_epoch >10 and current_epoch<numEpochs:
+        current_epoch += 1
+        print(f'Epochs {current_epoch}/{numEpochs}')
+
+        #Training and validation
+        loss_train, oa_train = train(cfg, dl_train, model, optim)
+        loss_val, oa_val = validate(cfg, dl_val, model)
+        scheduler.step()
+
+
 
         stats = {
             'loss_train': loss_train,

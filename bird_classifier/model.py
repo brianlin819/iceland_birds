@@ -16,12 +16,13 @@ class EfficientNetModel(nn.Module):
         in_features = last_layer.in_features 
         self.feature_extractor.classifier = nn.Identity()
         self.classifier = nn.Sequential(
-            nn.Dropout(p=0.3),
+            nn.Dropout(p=0.5),
             nn.Linear(in_features, num_classes),
-            nn.ReLU()
         )
  
     def forward(self, x):
         features = self.feature_extractor(x)
         prediction = self.classifier(features)
         return prediction
+
+        

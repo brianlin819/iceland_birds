@@ -35,7 +35,7 @@ python bird_classifier/plot_results.py
 Graphs for the test set will only be plotted once training has finished and gone through all the epochs set in configs.
 
 
-If training the model will take too long, a couple plots of the most recent run can be found in the graphs folder. (The results aren't very good yet)
+If training the model will take too long, a couple plots of the most recent run can be found in the graphs folder. The most recent results overfit pretty severely. But even so, the accuracy for the test set and validation set are significantly better than before. Will continue working on reducing overfitting...
 
 ## (OPTIONAL) Adding Data
 If you would like to train on your own dataset rather than the ones provided, delete the folders inside "datasets" and add your own folder with your data and annotations. Then change the image path in "detect_and_segment.py" to the path of your folder. Finally run "detect_and_segment.py" and then "pad_images.py".
