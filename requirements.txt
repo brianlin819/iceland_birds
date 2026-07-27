@@ -9,13 +9,6 @@ fonttools==4.63.0
 fsspec==2026.4.0
 idna==3.18
 impi-rt==2021.18.0
-intel-cmplr-lib-rt==2026.0.0
-intel-cmplr-lib-ur==2026.0.0
-intel-cmplr-lic-rt==2026.0.0
-intel-opencl-rt==2026.0.0
-intel-openmp==2026.0.0
-intel-pti==0.17.0
-intel-sycl-rt==2026.0.0
 Jinja2==3.1.6
 joblib==1.5.3
 kiwisolver==1.5.0
@@ -56,9 +49,6 @@ sympy==1.14.0
 tbb==2023.0.0
 tcmlib==1.5.0
 threadpoolctl==3.6.0
-torch==2.13.0+xpu
-torchaudio==2.11.0+xpu
-torchvision==0.28.0+xpu
 tqdm==4.70.0
 triton-xpu==3.7.2
 typing_extensions==4.15.0

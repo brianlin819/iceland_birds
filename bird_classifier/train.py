@@ -259,14 +259,12 @@ def main():
     print(f'Using config "{args.config}"')
     cfg = yaml.safe_load(open(args.config, 'r'))
 
-    init_seed(cfg.get('seed', None))
-
     device = cfg['device']
 
         #I was crashing a lot so added this
     if(device == 'xpu' and torch.xpu.is_available()):
         torch.xpu.set_per_process_memory_fraction(0.7)
-        
+
     if device != 'cpu' and not torch.xpu.is_available():
         print(f'WARNING: device set to "{device}" but XPU not available; falling back to CPU...')
         cfg['device'] = 'cpu'
