@@ -18,8 +18,6 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 import bitsandbytes as bnb
 from pathlib import Path
 
-torch.xpu.empty_cache()
-torch.xpu.set_per_process_memory_fraction(0.7)
 #Builds a BirdDataset based on the split (training and validation) and wraps it
 # in a pytorch dataloader.
 def create_dataloader(cfg, split='train'):
@@ -146,7 +144,8 @@ def train(cfg, dataLoader, model, optimizer):
     progressBar.close()
     loss_total /= len(dataLoader) 
     oa_total /= len(dataLoader)
-    torch.xpu.empty_cache()
+    if(device == 'xpu' and torch.xpu.is_available()):
+        torch.xpu.empty_cache()
     return loss_total, oa_total
     
 
@@ -186,7 +185,8 @@ def validate(cfg, dataLoader, model):
             progressBar.update(1)
     
     progressBar.close()
-    torch.xpu.empty_cache()
+    if(device == 'xpu' and torch.xpu.is_available()):
+        torch.xpu.empty_cache()
     loss_total /= len(dataLoader)
     oa_total /= len(dataLoader)
 
@@ -250,8 +250,6 @@ def getOA():
     return oa_train, oa_val
 
 def main():
-    #I was crashing a lot so added this
-    torch.xpu.set_per_process_memory_fraction(0.7)
 
     # Loads the configurations like the seed and device
     parser = argparse.ArgumentParser(description='Train deep learning model.')
@@ -264,6 +262,11 @@ def main():
     init_seed(cfg.get('seed', None))
 
     device = cfg['device']
+
+        #I was crashing a lot so added this
+    if(device == 'xpu' and torch.xpu.is_available()):
+        torch.xpu.set_per_process_memory_fraction(0.7)
+        
     if device != 'cpu' and not torch.xpu.is_available():
         print(f'WARNING: device set to "{device}" but XPU not available; falling back to CPU...')
         cfg['device'] = 'cpu'
@@ -300,7 +303,8 @@ def main():
             'oa_val': oa_val
         }
         save_model(cfg, current_epoch, model, stats)
-        torch.xpu.empty_cache()
+        if(device == 'xpu' and torch.xpu.is_available()):
+            torch.xpu.empty_cache()
 
     # reloads the optimizer wih the lower learning rate
     optim = setup_optimizer(cfg, model, False)
@@ -329,7 +333,8 @@ def main():
             'oa_val': oa_val
         }
         save_model(cfg, current_epoch, model, stats)
-        torch.xpu.empty_cache()
+        if(device == 'xpu' and torch.xpu.is_available()):
+            torch.xpu.empty_cache()
 
     #Graphing the loss and accuracy for training, validation, and testing.
     oa_train, oa_val = getOA()

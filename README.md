@@ -3,25 +3,58 @@ Model and data to classify Rock Ptarmigans in Iceland
 
 ## SETUP
 
-1. Install [Conda](http://conda.io/)
+1. Clone the repository
+```bash
+git clone https://github.com/brianlin819/iceland_birds
+cd iceland_birds
+```
 
-2. create a virtual environment and install the requirements
+<!-- 2. Install [Conda](http://conda.io/)
+
+```bash
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+``` -->
+
+2. create a virtual environment and activate it
+```bash
+python3 -m venv iceland_birds
+source iceland_birds/bin/activate
+```
 
 3. Install Pytorch. You will need to install the version of pytorch that fits with your machine. Most people should install it from [here](https://pytorch.org/get-started/locally/) but if you are planning on using an intel gpu, install it from [here](https://docs.pytorch.org/docs/2.13/notes/get_start_xpu.html). If downloading with CUDA, ROCm, or Intel XPU, make sure you have the proper drivers installed
 
-Example of Setup
+### Setup for CPU
 ```bash
-conda create -n iceland_birds
-conda activate iceland_birds
-conda install pip
+git clone https://github.com/brianlin819/iceland_birds
+cd iceland_birds
+python3 -m venv iceland_birds
+source iceland_birds/bin/activate
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+pip install -r requirements.txt
+```
+
+
+### Pytorch Installation for Intel GPU
+Download drivers
+```bash
+sudo apt-get update
+sudo apt-get install -y software-properties-common
+sudo add-apt-repository -y ppa:kobuk-team/intel-graphics
+sudo apt-get install -y libze-intel-gpu1 libze1 intel-metrics-discovery intel-opencl-icd clinfo intel-gsc
+sudo apt-get install -y intel-media-va-driver-non-free libmfx-gen1.2 libvpl2 libvpl-tools libva-glx2 va-driver-all vainfo
+sudo apt-get install -y libze-dev intel-ocloc
+```
+
+Setup with Intel GPU
+```bash
+git clone https://github.com/brianlin819/iceland_birds
+python -m venv iceland_birds
+source iceland_birds/bin/activate
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/xpu
 pip install -r requirements.txt
 ```
 ## Running
-1.     
-**IMPORTANT:** If you are not running this on intel XPU, you will have to go into the code and manually change xpu into the device you are using (cuda, cpu, etc.) in *configs*, *util.py*, and *train.py* 
 
-2. 
 Run train.py by running:
 ```bash
 python bird_classifier/train.py --config configs/exp_efficientnet.yaml
