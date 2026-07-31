@@ -10,3 +10,4 @@ tqdm
 scikit-learn
 pandas
 bitsandbytes
+PyQt5

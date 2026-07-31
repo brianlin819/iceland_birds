@@ -45,7 +45,7 @@ Run train.py by running:
 ```bash
 python bird_classifier/train.py --config configs/exp_efficientnet.yaml
 ```
-If you want to graph the training and validation loss/accuracies, run plot_results.py:
+If you want to graph the training and validation loss/accuracies (MUST HAVE RAN TRAINING FOR AT LEAST ONE EPOCH), run plot_results.py:
 
 ```bash
 python bird_classifier/plot_results.py
@@ -65,6 +65,7 @@ sudo apt-get install texlive-latex-base
 sudo apt update
 sudo apt install texlive-full
 cd overleaf_paper_source/
+pdflatex iceland_birds.tex
 bibtex iceland_birds
 pdflatex iceland_birds.tex
 ```
