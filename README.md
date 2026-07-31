@@ -70,6 +70,24 @@ Graphs for the test set will only be plotted once training has finished and gone
 
 If training the model will take too long, a couple plots of the most recent run can be found in the graphs folder. The most recent results overfit pretty severely. But even so, the accuracy for the test set and validation set are significantly better than before. Will continue working on reducing overfitting...
 
+## Creating the Paper and Presentation
+To view the presentation, download the BrianLin_ClassifyingRockPtarmiganAgeAndSex_slides(1).odp file.
+
+To view the paper, 
+```bash
+sudo apt-get install texlive-latex-base
+sudo apt update
+sudo apt install texlive-full
+cd overleaf_paper_source/
+bibtex iceland_birds
+pdflatex iceland_birds.tex
+```
+Download the iceland_birds.pdf paper that shows up. 
+
+OR
+
+Go to overleaf.com and create a blank project. Upload the .tex, .pngs, and .bib and delete the default placeholder file. Then open the .tex file and compile.
+
 ## (OPTIONAL) Adding Data
 If you would like to train on your own dataset rather than the ones provided, delete the folders inside "datasets" and add your own folder with your data and annotations. Then change the image path in "detect_and_segment.py" to the path of your folder. Finally run "detect_and_segment.py" and then "pad_images.py".
 
