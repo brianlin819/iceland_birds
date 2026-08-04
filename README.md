@@ -9,7 +9,7 @@ Model and data to classify Rock Ptarmigans in Iceland
 
 3. Install Pytorch. You will need to install the version of pytorch that fits with your machine. Most people should install it from [here](https://pytorch.org/get-started/locally/) but if you are planning on using an intel gpu, install it from [here](https://docs.pytorch.org/docs/2.13/notes/get_start_xpu.html). If downloading with CUDA, ROCm, or Intel XPU, make sure you have the proper drivers installed
 
-### Setup for CPU (if you have no GPU)
+### Setup for CPU (if you have no GPU. Recommended if just testing)
 ```bash
 git clone https://github.com/brianlin819/iceland_birds
 cd iceland_birds
@@ -69,7 +69,7 @@ pdflatex iceland_birds.tex
 bibtex iceland_birds
 pdflatex iceland_birds.tex
 ```
-Download the iceland_birds.pdf paper that shows up. 
+Download the iceland_birds.pdf paper that shows up in the overleaf_paper_source folder. 
 
 OR
 
